@@ -1,0 +1,18 @@
+server:
+  port: 9012
+spring:
+  application:
+    name: damocles-student-service
+  profiles:
+    active: prod
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.69.44.220:8848
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr} # 配置中心地址
+        file-extension: yml # 配置文件类型
+        refresh-enabled: true
+        shared-configs:
+          - damocles-datasource-config-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+          - damocles-global-config-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}

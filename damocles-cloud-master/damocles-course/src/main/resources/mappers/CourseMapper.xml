@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.moonholder.cloud.damocles.course.mapper.CourseMapper">
+    <select id="selectCoursePageByCondition" parameterType="course" resultType="course">
+        select * from course where is_del = 0
+        <if test="course.cteacherid != null and course.cteacherid != ''">
+            and cteacherid = #{course.cteacherid}
+        </if>
+        <if test="course.cname != null and course.cname != ''">
+            and cname = #{course.cname}
+        </if>
+        <if test="course.cteachername != null and course.cteachername != ''">
+            and cteachername = #{course.cteachername}
+        </if>
+    </select>
+
+    <select id="selectMyLessonPage" parameterType="int" resultType="course">
+        select c.cid, c.cname, c.ccredit, c.cperiod, c.cselcount, c.cmaxcount, c.cteachername
+        from course c,stu_course_relation sc where sc.sid = #{sid} and sc.cid = c.cid
+    </select>
+
+    <insert id="addMyCourse" parameterType="map">
+        insert into stu_course_relation (sid,cid) values (#{sid}, #{cid});
+    </insert>
+
+</mapper>

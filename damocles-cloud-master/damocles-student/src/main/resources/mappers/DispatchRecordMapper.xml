@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.moonholder.cloud.damocles.student.mapper.DispatchRecordMapper">
+    <select id="selectPageByCondition" parameterType="DispatchRecord" resultType="DispatchRecord">
+        select d.id, d.user_id,u.nick_name, d.team_id,team_name, d.type, d.create_time
+        from dispatch_record d
+        left join user u on d.user_id = u.id
+        left join team t on t.id = d.team_id
+        <where>
+            <if test="record.id != null">
+                d.id = #{record.id,jdbcType=INTEGER}
+            </if>
+            <if test="record.nickName != null and record.nickName != ''">
+                and u.nick_name like concat('%',#{record.nickName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="record.teamId != null">
+                and t.id = #{record.teamId,jdbcType=INTEGER}
+            </if>
+        </where>
+    </select>
+</mapper>

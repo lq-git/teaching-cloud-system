@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.moonholder.cloud.damocles.student.mapper.UserMapper">
+    <select id="selectUserPageFormAuth" resultType="User">
+        select u.id, u.username, u.nick_name nickName,r.id roleId,r.name roleName,u.icon icon,u.status `status` from
+        user u
+        left join user_role_relation ur on u.id = ur.user_id
+        left join role r on ur.role_id = r.id
+        <where>
+            <if test="user.username != null and user.username != ''">
+                u.username = #{user.username,jdbcType=VARCHAR}
+            </if>
+            <if test="user.nickName != null  and user.nickName != ''">
+                and u.nick_name like concat('%',#{user.nickName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="user.roleId != null and user.roleId!= ''">
+                and ur.role_id = #{user.roleId,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+    <select id="selectUserByTeamId" resultType="User">
+        select u.id,
+               u.nick_name,
+               u.username,
+               u.icon,
+               u.sex,
+               u.age,
+               u.phone,
+               u.email,
+               u.degree,
+               u.sno,
+               u.class_name,
+               u.admission_date,
+               u.status
+        from user u
+                 right join team_user_relation tu on u.id = tu.user_id
+        where tu.team_id = #{teamId,jdbcType=INTEGER}
+    </select>
+    <insert id="setUserTheTeam" parameterType="list">
+        insert into team_user_relation(team_id, user_id) VALUES
+        <foreach collection="additionList" item="userId" separator=",">
+            (#{teamId,jdbcType=INTEGER},#{userId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+    <delete id="deleteUserTheTeam">
+        delete from team_user_relation where team_id = #{teamId,jdbcType=INTEGER} and user_id in
+        <foreach collection="excludeList" item="userId" open="(" separator="," close=")">
+            #{userId,jdbcType=INTEGER}
+        </foreach>
+    </delete>
+    <select id="selectUserPageFormUser" resultType="User">
+        select
+        u.id,u.nick_name,u.username,u.icon,u.sex,u.age,u.phone,u.email,u.degree,u.sno,u.class_name,u.admission_date,u.address,u.status
+        from user u left join user_role_relation ur on u.id = ur.user_id left join role r on ur.role_id = r.id
+        <where>
+            <if test="user.nickName != null and user.nickName != ''">
+                u.nick_name like concat('%',#{user.nickName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="user.username != null  and user.username != ''">
+                and u.username = #{user.username,jdbcType=VARCHAR}
+            </if>
+            <if test="user.sex != null and user.sex != ''">
+                and u.sex = #{user.sex,jdbcType=VARCHAR}
+            </if>
+            <if test="user.degree != null and user.degree != ''">
+                and u.degree = #{user.degree,jdbcType=VARCHAR}
+            </if>
+            and r.code = 'student' or r.code = 'leader'
+        </where>
+    </select>
+    <select id="selectUserByRoleId" resultType="User">
+        select u.id, u.username, u.nick_name nickName, r.id roleId, r.name roleName, u.icon icon, u.status `status`
+        from user u
+                 left join user_role_relation ur on u.id = ur.user_id
+                 left join role r on ur.role_id = r.id
+        where ur.role_id = #{roleId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectNotSignUser" resultType="User">
+        select
+        u.id,u.nick_name,u.username,u.icon,u.sex,u.age,u.phone,u.email,u.degree,u.sno,u.class_name,u.admission_date,u.status
+        from user u
+        left join user_role_relation ur on u.id = ur.user_id left join role r on ur.role_id = r.id
+        <if test="teamId != null">left join team_user_relation tu on u.id = tu.user_id</if>
+        <where>
+            <if test="user.nickName != null and user.nickName != ''">
+                u.nick_name like concat('%',#{user.nickName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="user.username != null  and user.username != ''">
+                and u.username = #{user.username,jdbcType=VARCHAR}
+            </if>
+            <if test="user.sex != null and user.sex != ''">
+                and u.sex = #{user.sex,jdbcType=VARCHAR}
+            </if>
+            <if test="user.degree != null and user.degree != ''">
+                and u.degree = #{user.degree,jdbcType=VARCHAR}
+            </if>
+            <if test="teamId != null">
+                and tu.team_id = #{teamId,jdbcType=INTEGER}
+            </if>
+            and (r.code = 'student' or r.code = 'leader')
+            and u.id not in (select user_id from sign where datediff(now(),create_time) = 0 and is_del = 0)
+        </where>
+    </select>
+</mapper>

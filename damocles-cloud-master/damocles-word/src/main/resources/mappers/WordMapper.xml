@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.moonholder.cloud.damocles.word.mapper.WordMapper">
+
+    <select id="selectPageByCondition" parameterType="Word" resultType="Word">
+        select w.id, w.english, w.chinese, w.user_id,u.nick_name author, w.like_num, w.create_time,
+        case when (select count(1) from word_like_relation wl where wl.word_id = w.id and wl.user_id = #{word.userId}) > 0 then true else false end as
+        likeStatus,
+        case when (select count(1) from word_collect_relation wc where wc.word_id = w.id and wc.user_id = #{word.userId}) > 0 then true else false end
+        as collectStatus
+        from word w left join user u on w.user_id = u.id
+        <if test="word.collectStatus != null and word.collectStatus">
+            right join word_collect_relation wc on wc.word_id = w.id and wc.user_id = #{word.userId}
+        </if>
+        <where>
+            <if test="word.id != null">
+                w.id = #{word.id,jdbcType=INTEGER}
+            </if>
+            <if test="word.english != null  and word.author != ''">
+                and w.english like concat('%',#{word.english,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="word.chinese != null  and word.chinese != ''">
+                and w.chinese like concat('%',#{word.chinese,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="word.author != null  and word.author != ''">
+                and u.nick_name like concat('%',#{word.author,jdbcType=VARCHAR},'%')
+            </if>
+            and w.is_del = 0
+            order by like_num desc
+        </where>
+    </select>
+    <select id="selectMyPageByCondition" resultType="Word">
+        select w.id, w.english, w.chinese, w.user_id,u.nick_name author, w.like_num, w.create_time from word w left join
+        user u on w.user_id = u.id
+        <where>
+            <if test="word.id != null">
+                w.id = #{word.id,jdbcType=INTEGER}
+            </if>
+            <if test="word.english != null  and word.author != ''">
+                and w.english like concat('%',#{word.english,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="word.chinese != null  and word.chinese != ''">
+                and w.chinese like concat('%',#{word.chinese,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="word.author != null  and word.author != ''">
+                and u.nick_name like concat('%',#{word.author,jdbcType=VARCHAR},'%')
+            </if>
+            and w.user_id = #{word.userId,jdbcType=INTEGER} and w.is_del = 0
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  org.moonholder.cloud.damocles.common.redis.configure.RedisConfig,\
+  org.moonholder.cloud.damocles.common.redis.service.RedisService
+
+  

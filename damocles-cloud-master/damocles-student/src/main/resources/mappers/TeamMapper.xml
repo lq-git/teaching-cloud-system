@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.moonholder.cloud.damocles.student.mapper.TeamMapper">
+
+    <select id="selectListByCondition" resultType="Team">
+        select t.id,t.team_name,t.team_leader_id,t.team_coach_id,
+        case when team_leader_id then (select u.nick_name from user u where u.id = t.team_leader_id) end as
+        teamLeaderName,
+        case when team_coach_id then (select u.nick_name from user u where u.id = t.team_coach_id) end as teamCoachName,
+        t.classroom,t.stage,t.create_time
+        from team t
+        <where>
+            <if test="team.id != null">
+                t.id = #{team.id,jdbcType=INTEGER}
+            </if>
+            <if test="team.teamName != null and team.teamName != ''">
+                and t.team_name like concat('%',#{team.teamName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="team.teamLeaderId != null ">
+                and t.team_leader_id = #{team.teamLeaderId,jdbcType=INTEGER}
+            </if>
+            <if test="team.teamCoachId != null">
+                and t.team_coach_id = #{team.teamCoachId}
+            </if>
+            and is_del = 0
+        </where>
+    </select>
+    <select id="selectUnGroupUser" resultType="User">
+        select u.id,
+               username,
+               password,
+               sno,
+               nick_name,
+               icon,
+               sex,
+               age,
+               phone,
+               email,
+               class_name,
+               degree,
+               address,
+               admission_date,
+               u.status
+        from user u
+                 left join user_role_relation ur on u.id = ur.user_id
+                 left join role r on ur.role_id = r.id
+        where (r.code = 'student' or r.code = 'leader')
+          and u.id not in
+              (select team_user_relation.user_id from team_user_relation);
+    </select>
+    <select id="selectByUserId" resultType="Team">
+        select t.id,
+               team_name,
+               team_leader_id,
+               team_coach_id,
+               classroom,
+               stage,
+               create_time,
+               update_time
+        from team t
+                 left join team_user_relation tu on t.id = tu.team_id
+        where tu.user_id = #{userId,jdbcType=INTEGER}
+    </select>
+</mapper>

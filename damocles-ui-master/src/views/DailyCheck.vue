@@ -1,0 +1,155 @@
+<template>
+  <el-table :data="tableData.records" style="width: 100%">
+    <el-table-column label="ID" prop="id"> </el-table-column>
+    <el-table-column label="提交人" prop="author"></el-table-column>
+    <el-table-column label="提交时间" prop="time" align="center"></el-table-column>
+    <el-table-column label="专业" prop="major" align="center"></el-table-column>
+    <el-table-column label="老师" prop="coach" align="center"></el-table-column>
+    <!-- <el-table-column label="督导" prop="councilor" align="center"></el-table-column> -->
+    <el-table-column label="内容" prop="content" v-if="false" align="center"></el-table-column>
+    <el-table-column label="事件" prop="event" v-if="false" align="center"></el-table-column>
+    <el-table-column label="表现" prop="starred" v-if="false" align="center"></el-table-column>
+    <el-table-column label="收获" prop="harvest" v-if="false" align="center"></el-table-column>
+    <el-table-column label="疑惑" prop="doubt" v-if="false" align="center"></el-table-column>
+    <el-table-column label="帮助" prop="help" v-if="false" align="center"></el-table-column>
+    <el-table-column label="状态" prop="status" align="center">
+      <template #default="scope" v-if="dict.map.dailyStatus">
+        {{ dict.map.dailyStatus[scope.row.status] }}
+      </template>
+    </el-table-column>
+    <el-table-column label="创建时间" prop="createTime" align="center" :width="200">
+      <template #default="scope">
+        <i class="el-icon-time"></i>
+        <span style="margin-left: 10px">{{ scope.row.createTime }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column label="操作" align="center" :width="400">
+      <template #default="scope">
+        <el-button size="mini" @click="handleCheck(scope.$index, scope.row)">检查</el-button>
+      </template>
+    </el-table-column>
+  </el-table>
+  <Page></Page>
+  <el-dialog :title="dialogWrapper.title" v-model="dialogWrapper.visible" width="40%" center>
+    <el-form ref="updateForm" :inline="true" :model="dialogForm.data" label-width="60px">
+      <div class="daily_container">
+        <div class="header one">
+          <el-form-item label="ID" prop="id" v-if="false">
+            <el-input v-model="dialogForm.data.id"></el-input>
+          </el-form-item>
+          <el-form-item label="提交人" prop="author">
+            <el-input v-model="dialogForm.data.author"></el-input>
+          </el-form-item>
+          <el-form-item label="日期" prop="time">
+            <el-input v-model="dialogForm.data.time"></el-input>
+          </el-form-item>
+        </div>
+        <div class="header two">
+          <el-form-item label="专业" prop="major">
+            <el-input v-model="dialogForm.data.major"></el-input>
+          </el-form-item>
+          <el-form-item label=教练 prop="coach">
+            <el-input v-model="dialogForm.data.coach"></el-input>
+          </el-form-item>
+          <el-form-item label="督导" prop="councilor">
+            <el-input v-model="dialogForm.data.councilor"></el-input>
+          </el-form-item>
+        </div>
+        <div class="daily_body">
+          <div class="item">学习内容</div>
+          <div class="item">1、今天有什么事发生吗？</div>
+          <div class="item">2、今天有什么好的表现</div>
+          <div class="item">3、今天有什么好的收获</div>
+          <div class="item">4、今天有什么不懂的吗？</div>
+          <div class="item">5、有什么需要教练或机构帮助的吗？</div>
+          <el-input class="item" type="textarea" v-model="dialogForm.data.content"></el-input>
+          <el-input class="item" type="textarea" v-model="dialogForm.data.event"></el-input>
+          <el-input class="item" type="textarea" v-model="dialogForm.data.starred"></el-input>
+          <el-input class="item" type="textarea" v-model="dialogForm.data.harvest"></el-input>
+          <el-input class="item" type="textarea" v-model="dialogForm.data.doubt"></el-input>
+          <el-input class="item" type="textarea" v-model="dialogForm.data.help"></el-input>
+        </div>
+        <div class="daily_footer">
+           保密须知：此文件仅用于503B教研室内部传阅，未得到许可，项目所涉及的文件不得以任何形式外传或做其他用途，否则将承担相应的法律责任。
+        </div>
+      </div>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button type="primary" @click="save()">保存</el-button>
+        <el-button @click="cancel()">关闭</el-button>
+      </div>
+    </template>
+  </el-dialog>
+</template>
+<script lang='ts'>
+import { defineComponent, onBeforeMount, reactive } from "vue";
+import Daily from "../types/daily";
+import { request, responseMsg } from "../utils/request";
+import Page from "../components/Page.vue";
+import { tableData, query } from "../components/Page.vue";
+import Popups from "../types/popups";
+import Dict from "../types/dict";
+import { loadDictData, convertDictMap } from "../utils/dictUtil";
+export default defineComponent({
+  name: "DailyCheck",
+  components: {
+    Page,
+  },
+  setup() {
+    // 条件查询form
+    const queryModel = reactive({} as Daily);
+    // 数据表格字典字段转换
+    const dict = reactive({ map: {}, selectOption: {} });
+    loadDictData((data: Array<Dict>) => {
+      dict.map = convertDictMap(data);
+    });
+    // 弹出框构造
+    const dialogForm = reactive({ data: {} as Daily });
+    const dialogWrapper = reactive(new Popups());
+    onBeforeMount(() => {
+      query("", "/daily/checkRecord");
+    });
+    return {
+      tableData,
+      queryModel,
+      query,
+      dict,
+      dialogForm,
+      dialogWrapper,
+    };
+  },
+  methods: {
+    resetForm(formName: string) {
+      const _this = this as any;
+      _this.$refs[formName].resetFields();
+    },
+    handleCheck(index: number, row: any) {
+      this.dialogWrapper.type = "check";
+      this.dialogWrapper.visible = true;
+      this.dialogWrapper.title = "检查日报";
+      this.dialogForm.data = { ...row };
+    },
+    save() {
+      const _this = this as any;
+      const queryUrl = "/daily/checkRecord/check";
+      const msgTitle = _this.dialogWrapper.title;
+      _this.dialogForm.data.status = "checked";
+      request(queryUrl, _this.dialogForm.data, "post")
+        .then((response) => {
+          responseMsg.success(response, msgTitle, query);
+        })
+        .catch((error) => {
+          responseMsg.error(error, msgTitle);
+        });
+      this.cancel();
+    },
+    cancel() {
+      this.dialogWrapper.visible = false;
+      this.dialogForm.data = {} as Daily;
+    },
+  },
+});
+</script>
+<style scoped>
+</style>

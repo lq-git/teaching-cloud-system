@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.moonholder.cloud.damocles.student.mapper.SignMapper">
+    <select id="selectPageByCondition" resultType="Sign" parameterType="Sign">
+        select s.id, s.user_id,u.nick_name nickName, s.status, s.lated_time, s.create_time, s.update_time from sign s left join user u on s.user_id = u.id
+        <where>
+            <if test="sign.id != null">
+                s.id = #{sign.id,jdbcType=INTEGER}
+            </if>
+            <if test="sign.nickName != null and sign.nickName != ''">
+                and u.nick_name like concat('%',#{sign.nickName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="sign.status != null and sign.status != ''">
+                and s.status = #{sign.status,jdbcType=VARCHAR}
+            </if>
+            and s.is_del = 0
+        </where>
+    </select>
+</mapper>
